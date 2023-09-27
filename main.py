@@ -16,7 +16,8 @@ num_samples = df.shape[0]
 
 def get_validation_form():
     # Randomly a sample that hasn't been corrected yet
-    index = random.choice(df[df['corrected'] == "<blank>"].index)
+    #index = random.choice(df[df['corrected'] == "<blank>"].index)
+    index = random.choice(df.index)
     
     num_completed = df[df['corrected'] != "<blank>"].shape[0]
 
@@ -36,8 +37,6 @@ def get_validation_form():
     # Encode the WAV data as base64
     audio_base64 = base64.b64encode(wav_buffer.getvalue()).decode('utf-8')
 
-    # Pre-fill the text box with df['translation']
-    translation_value = df['translation'].iloc[index]
 
     # HTML form for the 'validate' endpoint
     validate_form = f"""
@@ -57,10 +56,10 @@ def get_validation_form():
         <p>Translation: {df['translation'].iloc[index]}</p>
         <p>Corrected: {df['corrected'].iloc[index]}</p>
         <p>Index: {index}</p>
-        <form action="/update" method="post">
+        <form action="/" method="post">
             <label for="user_text">Enter Text:</label>
             <!-- Pre-fill the text box with translation_value -->
-            <input type="text" id="user_text" name="user_text" required style="width: 70%;" value="{translation_value}">
+            <input type="text" id="user_text" name="user_text" required style="width: 70%;" value="{df['corrected'].iloc[index]}">
             <input type="hidden" name="index" value="{index}">
             <input type="submit" value="Submit">
         </form>
@@ -81,7 +80,7 @@ async def validate():
 
 
 # 'update' endpoint
-@app.post("/update")
+@app.post("/")
 async def update(user_text: str = Form(...), index: int = Form(...)):
     # Handle the user's submitted text and index here
     # For demonstration, we'll just print them
