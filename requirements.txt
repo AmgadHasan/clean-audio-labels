@@ -4,3 +4,4 @@ fastparquet
 fastapi
 uvicorn
 python-multipart
+Jinja2

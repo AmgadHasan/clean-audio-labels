@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Validate Endpoint</title>
+</head>
+<body>
+    <h1>Validate Endpoint</h1>
+    <h2>Completed so far: {{ num_completed }}/{{ num_samples }}</h2>
+    <audio controls>
+        <source src="data:audio/wav;base64,{{audio_base64}}" type="audio/wav">
+        Your browser does not support the audio element.
+    </audio>
+    <p>Utterance: {{ utterance }}</p>
+    <p>Translation: {{ translation }}</p>
+    <p>Corrected: {{ corrected }}</p>
+    <p>Index: {{ index }}</p>
+    <form action="/" method="post">
+        <label for="user_text">Enter Text:</label>
+        <input type="text" id="user_text" name="user_text" required style="width: 70%;" value="{{ corrected }}">
+        <input type="hidden" name="index" value="{{ index }}">
+        <input type="submit" value="Submit">
+    </form>
+</body>
+</html>
