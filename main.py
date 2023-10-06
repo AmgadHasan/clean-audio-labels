@@ -12,12 +12,14 @@ app = FastAPI()
 file_path="test.parquet"
 
 df = pd.read_parquet(file_path)
+indexes = iter(df.index)
 num_samples = df.shape[0]
 
 def get_validation_form():
     # Randomly a sample that hasn't been corrected yet
-    #index = random.choice(df[df['corrected'] == "<blank>"].index)
-    index = random.choice(df.index)
+    #index = random.choice(df[df['corrected'] != "<blank>"].index)
+    index = next(indexes)
+    #index = random.choice(df.index)
     
     num_completed = df[df['corrected'] != "<blank>"].shape[0]
 
