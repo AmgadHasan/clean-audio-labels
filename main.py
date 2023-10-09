@@ -53,7 +53,7 @@ def get_validation_form(request):
     num_completed = df[df['corrected'] != "<blank>"].shape[0]
 
     # Get the audio data from the DataFrame
-    audio_data = df['audio'].iloc[index]
+    audio_data = df['audio'].loc[index]
     audio_base64 = create_wav_in_memory(audio_data)
 
     # Data to pass to the template
@@ -61,9 +61,9 @@ def get_validation_form(request):
         "num_completed": num_completed,
         "num_samples": num_samples,
         "audio_base64": audio_base64,
-        "utterance": df['Utterance'].iloc[index],
-        "translation": df['translation'].iloc[index],
-        "corrected": df['corrected'].iloc[index],
+        "utterance": df['Utterance'].loc[index],
+        "translation": df['translation'].loc[index],
+        "corrected": df['corrected'].loc[index],
         "index": index,
     }
 
@@ -115,7 +115,7 @@ async def update(request: Request, user_text: str = Form(...), index: int = Form
     # Handle the user's submitted text and index here
     # For demonstration, we'll just print them
     print(f"Received text: {user_text}, index: {index}")
-    df['corrected'].iloc[index] = user_text
+    df['corrected'].loc[index] = user_text
     df.to_parquet(args.file_path)
     response = get_validation_form(request)
 
@@ -134,7 +134,7 @@ if __name__ == "__main__":
 	# Load your data here
 	df = pd.read_parquet(args.file_path)
 
-	indexes = iter(df.index)
+	indexes = iter(df[df['corrected']=="<blank>"].index)
 	num_samples = df.shape[0]
 	
 	uvicorn.run(app, host=args.host, port=args.port)
