@@ -23,7 +23,8 @@ def create_wav_in_memory(audio_data):
     """
     global SAMPLING_RATE
     audio_data = (audio_data * 32767).astype(np.int16)
-    
+
+
     # Create a WAV file in memory
     wav_buffer = io.BytesIO()
     with wave.open(wav_buffer, 'wb') as wf:
@@ -34,7 +35,7 @@ def create_wav_in_memory(audio_data):
 
     # Encode the WAV data as base64
     audio_base64 = base64.b64encode(wav_buffer.getvalue()).decode('utf-8')
-    
+
     return audio_base64
 
 def get_validation_form(request):
@@ -47,10 +48,19 @@ def get_validation_form(request):
     Returns:
         TemplateResponse: The HTML template response.
     """
-    # Randomly select a sample that hasn't been corrected yet
-    index = next(indexes)
-    
     num_completed = df[df['corrected'] != "<blank>"].shape[0]
+
+    try:
+        prit("In try")
+        index = next(indexes)
+    except:
+        print("In except")
+        if num_completed != df.shape[0]:
+            indexes = iter(df[df['corrected']=="<blank>"].index)
+        else:
+            indexes = iter(df.index)
+        index = next(indexes)
+
 
     # Get the audio data from the DataFrame
     audio_data = df['audio'].loc[index]
@@ -122,20 +132,23 @@ async def update(request: Request, user_text: str = Form(...), index: int = Form
     return response
 
 if __name__ == "__main__":
-	import uvicorn
-    
+    import uvicorn
+
     # Parse command-line arguments
-	args = parse_arguments()
-	SAMPLING_RATE = args.sampling_rate
+    args = parse_arguments()
+    SAMPLING_RATE = args.sampling_rate
 
-	# Create an instance of Jinja2Templates
-	templates = Jinja2Templates(directory=args.templates)
+    # Create an instance of Jinja2Template
+    templates = Jinja2Templates(directory=args.templates)
 
-	# Load your data here
-	df = pd.read_parquet(args.file_path)
+    # Load your data here
+    df = pd.read_parquet(args.file_path)
 
-	indexes = iter(df[df['corrected']=="<blank>"].index)
-	num_samples = df.shape[0]
-	
-	uvicorn.run(app, host=args.host, port=args.port)
+
+    num_samples = df.shape[0]
+
+    # Randomly select a sample that hasn't been corrected yet
+    indexes = iter(df[df['corrected']=="<blank>"].index)
+
+    uvicorn.run(app, host=args.host, port=args.port)
 
