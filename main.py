@@ -11,17 +11,16 @@ import argparse
 # Create a FastAPI app
 app = FastAPI()
 
-def create_wav_in_memory(audio_data):
+def create_wav_in_memory(audio_data, sampling_rate):
     """
     Create a WAV file in memory from audio data.
 
     Args:
-        audio_data (pd.Series): Audio data as a pandas Series.
+        audio_data (list): Audio data as a list or array.
 
     Returns:
         str: Base64-encoded WAV audio.
     """
-    global SAMPLING_RATE
     audio_data = (audio_data * 32767).astype(np.int16)
 
 
@@ -30,7 +29,7 @@ def create_wav_in_memory(audio_data):
     with wave.open(wav_buffer, 'wb') as wf:
         wf.setnchannels(1)  # Mono audio
         wf.setsampwidth(2)  # 16-bit audio
-        wf.setframerate(SAMPLING_RATE)  # Sample rate (adjust as needed)
+        wf.setframerate(sampling_rate)  # Sample rate (adjust as needed)
         wf.writeframes(audio_data.tobytes())
 
     # Encode the WAV data as base64
@@ -38,6 +37,7 @@ def create_wav_in_memory(audio_data):
 
     return audio_base64
 
+	
 def get_validation_form(request):
     """
     Generate the validation form data for rendering in the template.
@@ -48,23 +48,23 @@ def get_validation_form(request):
     Returns:
         TemplateResponse: The HTML template response.
     """
-    num_completed = df[df['corrected'] != "<blank>"].shape[0]
+    global df, num_completed, indexes, SAMPLING_RATE
 
     try:
-        prit("In try")
         index = next(indexes)
-    except:
-        print("In except")
+    except Exception as e:
+        print("In except", e)
         if num_completed != df.shape[0]:
             indexes = iter(df[df['corrected']=="<blank>"].index)
         else:
             indexes = iter(df.index)
         index = next(indexes)
+    row = df.index.get_loc(index)
 
 
     # Get the audio data from the DataFrame
     audio_data = df['audio'].loc[index]
-    audio_base64 = create_wav_in_memory(audio_data)
+    audio_base64 = create_wav_in_memory(audio_data, sampling_rate=SAMPLING_RATE)
 
     # Data to pass to the template
     template_data = {
@@ -75,6 +75,7 @@ def get_validation_form(request):
         "translation": df['translation'].loc[index],
         "corrected": df['corrected'].loc[index],
         "index": index,
+        "row": row
     }
 
     return templates.TemplateResponse("validation_template.html", {"request": request, **template_data})
@@ -143,12 +144,14 @@ if __name__ == "__main__":
 
     # Load your data here
     df = pd.read_parquet(args.file_path)
-
-
     num_samples = df.shape[0]
+    num_completed = df[df['corrected'] != "<blank>"].shape[0]
 
+    if num_completed != num_samples:
     # Randomly select a sample that hasn't been corrected yet
-    indexes = iter(df[df['corrected']=="<blank>"].index)
+    	indexes = iter(df[df['corrected']=="<blank>"].index)
+    else:
+	    indexes = iter(df.index)
 
     uvicorn.run(app, host=args.host, port=args.port)
 
