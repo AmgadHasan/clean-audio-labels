@@ -50,6 +50,7 @@ def get_validation_form(request):
     """
     global df, num_completed, indexes, SAMPLING_RATE
 
+    num_completed = df[df['corrected'] != "<blank>"].shape[0]
     try:
         index = next(indexes)
     except Exception as e:
