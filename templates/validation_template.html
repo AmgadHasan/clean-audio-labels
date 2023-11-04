@@ -10,9 +10,9 @@
         <source src="data:audio/wav;base64,{{audio_base64}}" type="audio/wav">
         Your browser does not support the audio element.
     </audio>
-    <p>Utterance: {{ utterance }}</p>
-    <p>Translation: {{ translation }}</p>
-    <p>Corrected: {{ corrected }}</p>
+    <p><span style="color: gray;">Utterance:</span><br> {{ utterance }}</p>
+    <p><span style="color: blue;">Translation:</span><br> {{ translation }}</p>
+    <p><span style="color: green;">Corrected:</span><br> {{ corrected }}</p>
     <p>Index: {{ index }}</p>
     <p>Row: {{ row }}</p>
     <form action="/" method="post">
